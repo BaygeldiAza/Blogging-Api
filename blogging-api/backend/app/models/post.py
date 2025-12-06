@@ -8,7 +8,7 @@ class Post(Base):
     id = Column(Integer, primary_key=True, index=True)
     title = Column(String, nullable=False, index=True)
     context = Column(Text, nullable=False)
-    author_id = Column(Integer, ForeignKey("user_id"), nullable=False)
+    author_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     #Relationship for author
     author = relationship("User", back_populates="posts")
     
