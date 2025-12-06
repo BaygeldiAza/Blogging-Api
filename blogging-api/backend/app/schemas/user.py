@@ -1,8 +1,8 @@
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, EmailStr
 
 class UserBase(BaseModel):
     username: str
-    email: str
+    email: EmailStr  #checks whether email or not 
 
 class UserCreate(UserBase):
     password: str
