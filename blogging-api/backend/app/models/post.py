@@ -11,4 +11,5 @@ class Post(Base):
     author_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     #Relationship for author
     author = relationship("User", back_populates="posts")
+    author = relationship("Comment", back_populates="post")
     
