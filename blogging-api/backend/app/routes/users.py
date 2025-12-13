@@ -6,8 +6,9 @@ from fastapi.security import OAuth2PasswordRequestForm
 from app.models.user import User
 from app.schemas.user import UserCreate, UserOut
 from app.database.database import get_db
-from app.utils.password import verify_password
+from app.utils.password import hashed_password, verify_password
 from app.utils.auth import create_access_token
+from app.dependencies.auth import get_current_user
 
 router = APIRouter(prefix="/users", tags=["Users"])
 
@@ -26,7 +27,7 @@ def register_user(user_in: UserCreate, db: Session = Depends(get_db)):
     new_user = User(
         username = user_in.username,
         email = user_in.email,
-        password = user_in.password,
+        password = hashed_password(user_in.password),
     )
     
     db.add(new_user)
@@ -50,6 +51,12 @@ def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depend
     access_token = create_access_token(data={"sub": user.email})
 
     return{"access_token": access_token, "token_type": "bearer"}
+
+router.get("/me", response_model=UserOut)
+def read_me(current_user: User = Depends(get_current_user)):
+    #Protected endpoint returns the currently logged-in user's information
+    return current_user
+
 
 @router.get("/", response_model=List[UserOut])
 def list_users(db: Session = Depends(get_db)):
