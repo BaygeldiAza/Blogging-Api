@@ -6,7 +6,7 @@ from fastapi.security import OAuth2PasswordRequestForm
 from app.models.user import User
 from app.schemas.user import UserCreate, UserOut
 from app.database.database import get_db
-from app.utils.password import hashed_password, verify_password
+from app.utils.password import hash_password, verify_password
 from app.utils.auth import create_access_token
 from app.dependencies.auth import get_current_user
 
@@ -27,7 +27,7 @@ def register_user(user_in: UserCreate, db: Session = Depends(get_db)):
     new_user = User(
         username = user_in.username,
         email = user_in.email,
-        password = hashed_password(user_in.password),
+        password = hash_password(user_in.password),
     )
     
     db.add(new_user)
