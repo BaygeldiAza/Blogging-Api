@@ -13,3 +13,4 @@ class User(Base):
     # Relationship links with post model
     posts = relationship("Post", back_populates = "author")
     comments = relationship("Comment", back_populates= "author")
+    liked_comments = relationship("CommentLike", back_populates="user")
