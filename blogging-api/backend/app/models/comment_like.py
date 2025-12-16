@@ -9,3 +9,6 @@ class CommentLike(Base):
     user_id = Column(Integer, ForeignKey("users.id"), nullable = False)
     comment_id = Column(Integer, ForeignKey("comments.id"), nullable = False)
     like = Column(Integer, nullable = False)
+
+    user = relationship("User", back_populates="liked_comments")
+    comment = relationship("Comment", back_populates="likes")

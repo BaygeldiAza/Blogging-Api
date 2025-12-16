@@ -12,5 +12,6 @@ class Comment(Base):
     # Relationship
     author = relationship("User", back_populates=("comments"))
     post = relationship("Post", back_populates=("comments"))
+    likes = relationship("CommentLike", back_populates="comment")
 
     
