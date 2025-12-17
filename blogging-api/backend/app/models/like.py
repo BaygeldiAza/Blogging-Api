@@ -13,5 +13,7 @@ class Like(Base):
     user = relationship("User", back_populates="liked_comments")
     comment = relationship("Comment", back_populates="likes")
 
-    __table_args__ = (UniqueConstraint("user_id", "comment_id", name = "unique_user_comment_like"))
+    __table_args__ = (
+        UniqueConstraint("user_id", "comment_id", name = "unique_user_comment_like"),
+    )
 
