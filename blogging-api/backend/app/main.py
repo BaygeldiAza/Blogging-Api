@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from app.database.database import engine, Base
-from app.models import user, post, comment
+from app.models import user, post, comment, like
 from app.routes import users, posts, comments, likes
 
 Base.metadata.create_all(bind = engine)
