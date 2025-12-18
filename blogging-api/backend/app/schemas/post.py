@@ -11,6 +11,9 @@ class PostCreate(PostBase):
 class PostOut(PostBase):
     id: int 
     author_id: int
+    comment_count: int = 0
+    like_count: int = 0
+    dislike_count: int = 0
 
     class Config:
         config_model = ConfigDict(from_attributes=True)
