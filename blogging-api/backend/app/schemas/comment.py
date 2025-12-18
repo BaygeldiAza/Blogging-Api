@@ -11,6 +11,9 @@ class CommentOut(CommentBase):
     author_id: int
     post_id: int
     author_username: str 
+    
+    like_count = 0
+    dislike_count = 0
 
     class Config:
         config_model = ConfigDict(from_attributes=True)
