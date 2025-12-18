@@ -85,6 +85,10 @@ def update_comment(comment_id: int, comment_in: CommentCreate, db: Session = Dep
     db.commit()
     db.refresh(comment)
 
+    comment.author_username = comment.author.username   
+    comment.like_count = 0
+    comment.dislike_count = 0
+
     return comment 
 
 @router.delete("/{comment_id}", status_code=status.HTTP_404_NOT_FOUND)
