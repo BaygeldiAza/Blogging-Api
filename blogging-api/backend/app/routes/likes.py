@@ -1,49 +1,88 @@
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
+from sqlalchemy.exc import IntegrityError
+
 from app.database.database import get_db
 from app.dependencies.auth import get_current_user
-from app.models.comment import Comment  
-from app.models.user import User
 from app.models.like import Like
+from app.models.post import Post
+from app.models.comment import Comment
+from app.models.user import User
+from app.schemas.like import LikeCreate
 
 router = APIRouter(prefix="/likes", tags=["Likes"])
 
-@router.post("/comment/{comment_id}")
-def like_or_dislike_comment(comment_id: int, value: int, db: Session=Depends(get_db), current_user: User=Depends(get_current_user)):
-    if value not in (1,-1):
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Value must be 1 (like) or -1(dislike)")
-    
-    comment = db.query(Comment).filter(Comment.id == comment_id).first()
-    if not comment:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Comment not found")
-    
-    existing = db.query(Like).filter(Like.comment_id == comment_id, Like.user_id == current_user.id).first()
+@router.post("/", status_code=status.HTTP_201_CREATED)
+def like_target(
+    payload: LikeCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    if (payload.post_id is None) == (payload.comment_id is None):
+        raise HTTPException(status_code=400, detail="Send exactly one: post_id OR comment_id")
 
-    if existing:
-        existing.value = value
-        db.commit()
-        return {"detail": "Reaction updated", "value": value}
-    
-    new_like = Like(user_id = current_user.id, comment_id = comment_id, value = value)
+    if payload.post_id is not None:
+        post = db.query(Post).filter(Post.id == payload.post_id).first()
+        if not post:
+            raise HTTPException(status_code=404, detail="Post not found")
 
-    db.add(new_like)
-    
+        like = Like(user_id=current_user.id, post_id=payload.post_id)
+
+    else:
+        comment = db.query(Comment).filter(Comment.id == payload.comment_id).first()
+        if not comment:
+            raise HTTPException(status_code=404, detail="Comment not found")
+
+        like = Like(user_id=current_user.id, comment_id=payload.comment_id)
+
+    db.add(like)
     try:
-        db.commint()
+        db.commit()
     except IntegrityError:
         db.rollback()
-        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Reaction already exists (try again)")
-    return {"detail": "Reaction added", "value": value}
+        # idempotent: already liked
+        return {"detail": "Already liked"}
 
-@router.delete("/comment/{comment_id}", status_code=status.HTTP_200_OK)
-def remove_reaction(comment_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
-    existing = db.query(Like).filter(Like.comment_id == comment_id, Like.user_id == current_user.id).first()
+    return {"detail": "Liked"}
 
+@router.delete("/post/{post_id}", status_code=status.HTTP_200_OK)
+def unlike_post(
+    post_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    existing = db.query(Like).filter(Like.post_id == post_id, Like.user_id == current_user.id).first()
     if not existing:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Reaction not found")
-    
+        raise HTTPException(status_code=404, detail="Like not found")
+
     db.delete(existing)
     db.commit()
+    return {"detail": "Unliked"}
 
-    return {"detail": "Reaction removed"}
+@router.delete("/comment/{comment_id}", status_code=status.HTTP_200_OK)
+def unlike_comment(
+    comment_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    existing = db.query(Like).filter(Like.comment_id == comment_id, Like.user_id == current_user.id).first()
+    if not existing:
+        raise HTTPException(status_code=404, detail="Like not found")
+
+    db.delete(existing)
+    db.commit()
+    return {"detail": "Unliked"}
+
+# Optional compatibility with your frontend if it calls DELETE /likes/{post_id}
+@router.delete("/{post_id}", status_code=status.HTTP_200_OK)
+def unlike_post_compat(
+    post_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    existing = db.query(Like).filter(Like.post_id == post_id, Like.user_id == current_user.id).first()
+    if not existing:
+        raise HTTPException(status_code=404, detail="Like not found")
+    db.delete(existing)
+    db.commit()
+    return {"detail": "Unliked"}

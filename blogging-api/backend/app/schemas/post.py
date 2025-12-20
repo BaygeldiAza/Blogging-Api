@@ -1,19 +1,28 @@
 from pydantic import BaseModel, ConfigDict
 
-#Shared fields for creating and returning to client
+
 class PostBase(BaseModel):
     title: str
     content: str
-#Create new post(request body)
+
+
 class PostCreate(PostBase):
-    pass 
-#Return a post to the client(response body)
+    pass
+
+
 class PostOut(PostBase):
-    id: int 
+    id: int
     author_id: int
+    author_username: str
+
     comment_count: int = 0
     like_count: int = 0
-    dislike_count: int = 0
+    dislike_count: int = 0  # kept for compatibility if frontend expects it
 
-    class Config:
-        config_model = ConfigDict(from_attributes=True)
+    liked_by_me: bool = False
+
+    # optional aliases for some frontends
+    likes_count: int = 0
+    comments_count: int = 0
+
+    model_config = ConfigDict(from_attributes=True)

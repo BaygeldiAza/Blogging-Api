@@ -1,21 +1,19 @@
 from pydantic import BaseModel, ConfigDict
 
-class CommentBase(BaseModel):
+
+class CommentCreate(BaseModel):
     content: str
 
-class CommentCreate(CommentBase):
-    post_id: int
 
-class CommentOut(CommentBase):
+class CommentOut(BaseModel):
     id: int
+    content: str
     author_id: int
     post_id: int
-    author_username: str 
-    
-    like_count: int = 0
-    dislike_count: int = 0
+    author_username: str
 
-    my_reaction: int = 0
-    
-    class Config:
-        config_model = ConfigDict(from_attributes=True)
+    like_count: int = 0
+    dislike_count: int = 0  # kept for compatibility
+    my_reaction: int = 0    # 1 if liked else 0
+
+    model_config = ConfigDict(from_attributes=True)

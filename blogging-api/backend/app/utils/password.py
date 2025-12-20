@@ -1,7 +1,7 @@
 from passlib.context import CryptContext
 
 pwd_context = CryptContext(
-    schemes=["bcrypt_sha256"],  # instead of "bcrypt"
+    schemes=["bcrypt"],
     deprecated="auto",
 )
 
