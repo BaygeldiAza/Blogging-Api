@@ -8,6 +8,3 @@ pydantic[email]
 python-jose[cryptography]
 python-multipart
 bcrypt==4.1.2
-
-npm i axios
-npm i react-router-dom
